@@ -22,6 +22,7 @@ motor LFM (PORT4, ratio6_1, true);
 motor LMM (PORT5, ratio6_1, true);
 motor LBM (PORT6, ratio6_1, true);
 motor FI  (PORT7, ratio6_1, true);
+motor CI  (PORT8, ratio6_1, true);
 controller Controller;
 brain Brain; 
 
@@ -118,6 +119,19 @@ void usercontrol(void) {
     int Lspeed = Controller.Axis3.position(pct);
     int Rspeed = Controller.Axis2.position(pct);
  drive(Rspeed, Lspeed, 10);
+
+
+    if (Controller.ButtonL1.pressing()){ 
+      FI.spin(forward, 100, pct); 
+    }
+    else if () { 
+      FI.spin(backward, 100, pct);
+    }
+    else {
+      FI.stop
+    }
+
+
 
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
