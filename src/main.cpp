@@ -15,14 +15,15 @@ using namespace vex;
 competition Competition;
 
 // define your global instances of motors and other devices here
-motor RFM (PORT1, ratio6_1, false);
-motor RMM (PORT2, ratio6_1, false);
-motor RBM (PORT3, ratio6_1, false);
-motor LFM (PORT4, ratio6_1, true);
-motor LMM (PORT5, ratio6_1, true);
-motor LBM (PORT6, ratio6_1, true);
-motor FI  (PORT7, ratio6_1, true);
-motor CI  (PORT8, ratio6_1, true);
+motor RF (PORT17, ratio6_1, false);
+motor RM (PORT20, ratio6_1, false);
+motor RB (PORT18, ratio6_1, false);
+motor LF (PORT15, ratio6_1, true);
+motor LM (PORT16, ratio6_1, true);
+motor LB (PORT13, ratio6_1, true);
+motor outake1 (PORT9, ratio6_1, true);
+motor outake2 (PORT19, ratio6_1, true);
+motor conveyor (PORT14, ratio6_1, true);
 controller Controller;
 brain Brain; 
 
@@ -43,41 +44,27 @@ wait for certain amount of time given by the user
 
 void drive (int Rspeed, int Lspeed, int AT){ 
 
-  RFM.spin(forward,Rspeed, pct ); 
-  RMM.spin(forward,Rspeed, pct);
-  RBM.spin(forward,Rspeed, pct);
-  LFM.spin(forward,Lspeed, pct);
-  LMM.spin(forward,Lspeed, pct);
-  LBM.spin(forward,Lspeed, pct);
+  RF.spin(forward,Rspeed, pct ); 
+  RM.spin(forward,Rspeed, pct);
+  RB.spin(forward,Rspeed, pct);
+  LF.spin(forward,Lspeed, pct);
+  LM.spin(forward,Lspeed, pct);
+  LB.spin(forward,Lspeed, pct);
   wait(AT, msec);
 }
 
 
 void stop(){
-RFM.stop(brake); 
-RMM.stop(brake);
-RBM.stop(brake);
-LFM.stop(brake);
-LMM.stop(brake);
-LBM.stop(brake);
+RF.stop(brake); 
+RM.stop(brake);
+RB.stop(brake);
+LF.stop(brake);
+LM.stop(brake);
+LB.stop(brake);
 
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /*---------------------------------------------------------------------------*/
 
@@ -118,17 +105,30 @@ void usercontrol(void) {
   while (1) {
     int Lspeed = Controller.Axis3.position(pct);
     int Rspeed = Controller.Axis2.position(pct);
- drive(Rspeed, Lspeed, 10);
+    drive(Rspeed, Lspeed, 10);
 
 
     if (Controller.ButtonL1.pressing()){ 
-      FI.spin(forward, 100, pct); 
+      outake1.spin(reverse, 100, pct); 
+      outake2.spin(reverse, 100, pct); 
     }
-    else if () { 
-      FI.spin(backward, 100, pct);
+    else if (Controller.ButtonL2.pressing()) { 
+      outake1.spin(reverse, 100, pct);
+      outake2.spin(forward, 100, pct);
     }
     else {
-      FI.stop
+      outake1.stop();
+      outake2.stop();
+    }
+
+if (Controller.ButtonR1.pressing()){ 
+      conveyor.spin(forward, 100, pct); 
+    }
+    else if (Controller.ButtonR2.pressing()) { 
+      conveyor.spin(reverse, 100, pct);
+    }
+    else {
+      conveyor.stop();
     }
 
 
