@@ -15,6 +15,7 @@ using namespace vex;
 competition Competition;
 
 // define your global instances of motors and other devices here
+brain Brain;
 motor RF (PORT17, ratio6_1, false);
 motor RM (PORT20, ratio6_1, false);
 motor RB (PORT18, ratio6_1, false);
@@ -24,23 +25,13 @@ motor LB (PORT13, ratio6_1, true);
 motor outake1 (PORT9, ratio6_1, true);
 motor outake2 (PORT19, ratio6_1, true);
 motor conveyor (PORT14, ratio6_1, true);
-controller Controller;
-brain Brain; 
+digital_out Scrapaparer = vex::digital_out(Brain.ThreeWirePort.A);
+digital_out Descorerere = vex::digital_out(Brain.ThreeWirePort.B);
+controller Controller; 
 
 /*---------------------------------------------------------------------------*/
 /*                          Pre-Autonomous Functions                         */
 /*                                                                           */
-
-/* return type NAME (right speed, left side speed, amount of time) {
-
-move the motor forward based on speed given by the user 
-move the motor forward based on speed given by the user 
-move the motor forward based on speed given by the user 
-move the motor forward based on speed given by the user 
-move the motor forward based on speed given by the user 
-move the motor forward based on speed given by the user 
-wait for certain amount of time given by the user
-}*/
 
 void drive (int Rspeed, int Lspeed, int AT){ 
 
@@ -53,7 +44,6 @@ void drive (int Rspeed, int Lspeed, int AT){
   wait(AT, msec);
 }
 
-
 void stop(){
 RF.stop(brake); 
 RM.stop(brake);
@@ -61,9 +51,6 @@ RB.stop(brake);
 LF.stop(brake);
 LM.stop(brake);
 LB.stop(brake);
-
-
-
 }
 
 /*---------------------------------------------------------------------------*/
@@ -107,7 +94,6 @@ void usercontrol(void) {
     int Rspeed = Controller.Axis2.position(pct);
     drive(Rspeed, Lspeed, 10);
 
-
     if (Controller.ButtonL1.pressing()){ 
       outake1.spin(reverse, 100, pct); 
       outake2.spin(reverse, 100, pct); 
@@ -121,17 +107,29 @@ void usercontrol(void) {
       outake2.stop();
     }
 
-if (Controller.ButtonR1.pressing()){ 
-      conveyor.spin(forward, 100, pct); 
-    }
-    else if (Controller.ButtonR2.pressing()) { 
-      conveyor.spin(reverse, 100, pct);
-    }
-    else {
-      conveyor.stop();
-    }
+  if (Controller.ButtonR1.pressing()){ 
+    conveyor.spin(forward, 100, pct); 
+  }
+  else if (Controller.ButtonR2.pressing()) { 
+    conveyor.spin(reverse, 100, pct);
+  }
+  else {
+    conveyor.stop();
+  }
 
-
+  if (Controller.ButtonX.pressing()){
+    Scrapaparer.set(false);
+  }
+  if (Controller.ButtonB.pressing()){
+    Scrapaparer.set(true);
+  }
+  
+  if (Controller.ButtonUp.pressing()){
+    Descorerere.set(true);
+  }
+  if (Controller.ButtonDown.pressing()){
+    Descorerere.set(false);
+  }
 
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
