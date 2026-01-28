@@ -22,19 +22,18 @@ motor RB (PORT18, ratio6_1, false);
 motor LF (PORT15, ratio6_1, true);
 motor LM (PORT16, ratio6_1, true);
 motor LB (PORT13, ratio6_1, true);
-motor outake1 (PORT9, ratio6_1, true);
-motor outake2 (PORT19, ratio6_1, true);
+motor outake1 (PORT9, ratio6_1, 0);//red sprocket
+motor outake2 (PORT19, ratio6_1, true);//green sprocket
 motor conveyor (PORT14, ratio6_1, true);
-digital_out Scrapaparer = vex::digital_out(Brain.ThreeWirePort.A);
-digital_out Descorerere = vex::digital_out(Brain.ThreeWirePort.B);
+inertial gyr (PORT1);
+digital_out ScrapaparerDescorerere = digital_out(Brain.ThreeWirePort.A);
 controller Controller; 
 
 /*---------------------------------------------------------------------------*/
 /*                          Pre-Autonomous Functions                         */
 /*                                                                           */
 
-void drive (int Rspeed, int Lspeed, int AT){ 
-
+void drive (int Rspeed, int Lspeed, int AT){    
   RF.spin(forward,Rspeed, pct ); 
   RM.spin(forward,Rspeed, pct);
   RB.spin(forward,Rspeed, pct);
@@ -45,12 +44,52 @@ void drive (int Rspeed, int Lspeed, int AT){
 }
 
 void stop(){
-RF.stop(brake); 
-RM.stop(brake);
-RB.stop(brake);
-LF.stop(brake);
-LM.stop(brake);
-LB.stop(brake);
+  RF.stop(brake); 
+  RM.stop(brake);
+  RB.stop(brake);
+  LF.stop(brake);
+  LM.stop(brake);
+  LB.stop(brake);
+}
+
+float D = 3.25;
+float P = M_PI;
+float G = 36/60;
+
+void inchDrive(float target){ 
+  float x = 0; 
+  LF.setPosition(0, rev); 
+  x = LF.position(rev)*D*P*G; 
+
+  if (target >= 0 ){
+    while (x <= target ) { 
+      drive(50, 50, 10); 
+      x = LF.position(rev)*D*P*G; 
+    }
+  }
+  else if (target <0){ 
+    while (x <=fabs(target)){
+      drive(-50, -50, 10); 
+      x = -LF.position(rev)*D*P*G;
+    }
+  }
+  stop();
+}
+
+void gyroTurn(float target){
+	float heading=0.0; //initialize a variable for heading
+	float accuracy=2.0; //how accurate to make the turn in degrees
+	float error=target-heading;
+	float kp=5.0;
+	float speed=kp*error;
+	gyr.setRotation(0.0, degrees);  //reset Gyro to zero degrees
+	while(fabs(error)>=accuracy){
+		speed=kp*error;
+		drive(speed, -speed, 10); //turn right at speed
+		heading=gyr.rotation();  //measure the heading of the robot
+		error=target-heading;  //calculate error
+	}
+	stop();  //stope the drive
 }
 
 /*---------------------------------------------------------------------------*/
@@ -73,7 +112,18 @@ void pre_auton(void) {
 
 void autonomous(void) {
   // ..........................................................................
-  // Insert autonomous user code here.
+  inchDrive(30);
+  gyroTurn(90);
+  conveyor.spin(forward, 100, pct);
+  drive(75,75, 100);
+  inchDrive(-24);
+  outake1.spin(forward, 100, pct);
+  outake2.spin(forward, 100, pct);
+  inchDrive(10);
+  gyroTurn(90);
+  conveyor.spin(forward, 100, pct);
+  inchDrive(1);
+
   // ..........................................................................
 }
 
@@ -117,18 +167,11 @@ void usercontrol(void) {
     conveyor.stop();
   }
 
-  if (Controller.ButtonX.pressing()){
-    Scrapaparer.set(false);
-  }
-  if (Controller.ButtonB.pressing()){
-    Scrapaparer.set(true);
-  }
-  
   if (Controller.ButtonUp.pressing()){
-    Descorerere.set(true);
+    ScrapaparerDescorerere.set(true);
   }
   if (Controller.ButtonDown.pressing()){
-    Descorerere.set(false);
+    ScrapaparerDescorerere.set(false);
   }
 
     wait(20, msec); // Sleep the task for a short amount of time to
@@ -146,7 +189,6 @@ int main() {
 
   // Run the pre-autonomous function.
   pre_auton();
-
   // Prevent main from exiting with an infinite loop.
   while (true) {
     wait(100, msec);
