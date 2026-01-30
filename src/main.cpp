@@ -22,9 +22,9 @@ motor RB (PORT18, ratio6_1, false);
 motor LF (PORT15, ratio6_1, true);
 motor LM (PORT16, ratio6_1, true);
 motor LB (PORT13, ratio6_1, true);
-motor outake1 (PORT9, ratio6_1, 0);//red sprocket
+motor outake1 (PORT9, ratio6_1, 1);//red sprocket
 motor outake2 (PORT19, ratio6_1, true);//green sprocket
-motor conveyor (PORT14, ratio6_1, true);
+motor conveyor (PORT14, ratio6_1, false);
 inertial gyr (PORT1);
 digital_out ScrapaparerDescorerere = digital_out(Brain.ThreeWirePort.A);
 controller Controller; 
