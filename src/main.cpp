@@ -34,12 +34,14 @@ controller Controller;
 /*                                                                           */
 
 void drive (int Rspeed, int Lspeed, int AT){    
-  RF.spin(forward,Rspeed, pct ); 
-  RM.spin(forward,Rspeed, pct);
-  RB.spin(forward,Rspeed, pct);
-  LF.spin(forward,Lspeed, pct);
-  LM.spin(forward,Lspeed, pct);
-  LB.spin(forward,Lspeed, pct);
+  double rVolts = Rspeed * 0.12;
+  double lVolts = Lspeed * 0.12;
+  RF.spin(forward,rVolts, volt ); 
+  RM.spin(forward,rVolts, volt);
+  RB.spin(forward,rVolts, volt);
+  LF.spin(forward,lVolts, volt);
+  LM.spin(forward,lVolts, volt);
+  LB.spin(forward,lVolts, volt);
   wait(AT, msec);
 }
 
@@ -54,27 +56,64 @@ void stop(){
 
 float D = 3.25;
 float P = M_PI;
-float G = 36/60;
+float G = 36.0 / 60.0;
 
-void inchDrive(float target){ 
-  float x = 0; 
-  LF.setPosition(0, rev); 
-  x = LF.position(rev)*D*P*G; 
+double revToIn(double rev){
+  return rev*D*P*G;
+}
 
-  if (target >= 0 ){
-    while (x <= target ) { 
-      drive(50, 50, 10); 
-      x = LF.position(rev)*D*P*G; 
+double kP = 3;
+double kI = 0.1;
+double kD = 0;
+double accuracy = 0.25;
+
+void inchDrive(double target){ 
+  //float moved = 0; 
+  //RF.setPosition(0, rev); 
+  double startPosition = RF.position(rev);
+  double moved = revToIn(RF.position(rev) - startPosition);
+  double error = target;
+  double accumulatedError = 0;
+
+  int debugCounter = 0;
+  while(fabs(error) > accuracy) {
+  
+    double speed = kP*error + kI * accumulatedError;
+    if (speed > 50){
+      speed = 50;
     }
-  }
-  else if (target <0){ 
-    while (x <=fabs(target)){
-      drive(-50, -50, 10); 
-      x = -LF.position(rev)*D*P*G;
+    if (speed < -50) {
+      speed = -50;
+    }
+    drive(speed, speed, 10);
+    moved = revToIn(RF.position(rev) - startPosition);
+    double previousError=error;
+    error = target - moved;
+    if (fabs(error) < 2){
+      accumulatedError= accumulatedError + error;
+    }
+    if ((previousError<0 && error>0) || (previousError>0 && error<0)){
+      accumulatedError = 0;
+    }
+    if (++debugCounter % 10 == -1) {
+      printf("tick: %d drive: %f moved: %0.2f error: %0.2f kP: %0.2f kI : %0.2f\n", debugCounter, target, moved, error, kP*error, kI*accumulatedError);
+
     }
   }
   stop();
 }
+
+void testDrive(double inches){
+  double startPosition = RF.position(rev);
+  long startTime = vex::timer::system();
+  inchDrive(inches);
+  wait(1000, msec);
+  double endPosition = RF.position(rev);
+  long endTime = vex::timer::system();
+  printf("drive test %f: distance: %0.2f time: %lu\n", inches, revToIn(endPosition - startPosition), endTime - startTime);
+
+}
+
 
 void gyroTurn(float target){
 	float heading=0.0; //initialize a variable for heading
@@ -111,10 +150,11 @@ void pre_auton(void) {
 /*---------------------------------------------------------------------------*/
 
 void autonomous(void) {
+  testDrive(40);
+  testDrive(-40);
   // ..........................................................................
+  /*conveyor.spin(forward, 100, pct);
   inchDrive(30);
-  gyroTurn(90);
-  conveyor.spin(forward, 100, pct);
   drive(75,75, 100);
   inchDrive(-24);
   outake1.spin(forward, 100, pct);
@@ -123,7 +163,7 @@ void autonomous(void) {
   gyroTurn(90);
   conveyor.spin(forward, 100, pct);
   inchDrive(1);
-
+*/
   // ..........................................................................
 }
 
@@ -185,7 +225,7 @@ void usercontrol(void) {
 int main() {
   // Set up callbacks for autonomous and driver control periods.
   Competition.autonomous(autonomous);
-  Competition.drivercontrol(usercontrol);
+  //Competition.drivercontrol(usercontrol);
 
   // Run the pre-autonomous function.
   pre_auton();
