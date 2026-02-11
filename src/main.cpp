@@ -22,8 +22,8 @@ motor RB (PORT18, ratio6_1, false);
 motor LF (PORT15, ratio6_1, true);
 motor LM (PORT16, ratio6_1, true);
 motor LB (PORT13, ratio6_1, true);
-motor outake1 (PORT9, ratio6_1, 1);//red sprocket
-motor outake2 (PORT19, ratio6_1, true);//green sprocket
+motor outake1 (PORT9, ratio18_1, 1);//red sprocket
+motor outake2 (PORT19, ratio18_1, true);//green sprocket
 motor conveyor (PORT14, ratio6_1, false);
 inertial gyr (PORT1);
 digital_out ScrapaparerDescorerere = digital_out(Brain.ThreeWirePort.A);
@@ -131,6 +131,128 @@ void gyroTurn(float target){
 	stop();  //stope the drive
 }
 
+double YOFFSET = 20; //offset for the display
+//Writes a line for the diagnostics of a motor on the Brain
+void MotorDisplay(double y, double curr, double temp)
+{
+Brain.Screen.setFillColor(transparent);
+Brain.Screen.printAt(5, YOFFSET + y, "Current: %.1fA", curr);
+if (curr < 1)
+Brain.Screen.setFillColor(green);
+else if (curr >= 1 && curr  <= 2.5)
+Brain.Screen.setFillColor(yellow);
+else
+Brain.Screen.setFillColor(red);
+Brain.Screen.drawRectangle(140, YOFFSET + y - 15, 15, 15);
+
+Brain.Screen.setFillColor(transparent);
+Brain.Screen.printAt(160, YOFFSET + y, "Temp: %.1fC", temp);
+if (temp < 45)
+Brain.Screen.setFillColor(green);
+else if (temp <= 50 && temp  >= 45)
+// TRUE and TRUE --> True
+// TRUE and FALSE --> False
+// FALSE and FALSE --> False
+Brain.Screen.setFillColor(yellow);
+else
+Brain.Screen.setFillColor(red);
+Brain.Screen.drawRectangle(275, YOFFSET + y - 15, 15, 15);
+Brain.Screen.setFillColor(transparent);
+}
+
+///Starting the code for all the tempeture stuff
+
+//Displays information on the brain
+void Display()
+{
+double leftFrontCurr = LF.current(amp);
+double leftFrontTemp = LF.temperature(celsius);
+double leftBackCurr = LB.current(amp);
+double leftBackTemp = LB.temperature(celsius);
+double leftMidCurr = LM.current(amp);
+double leftMidTemp = LM.temperature(celsius);
+
+double rightFrontCurr = RF.current(amp);
+double rightFrontTemp = RF.temperature(celsius);
+double rightBackCurr = RB.current(amp);
+double rightBackTemp = RB.temperature(celsius);
+double rightMidCurr = RM.current(amp);
+double rightMidTemp = RM.temperature(celsius);
+
+double conveyorCurr = conveyor.current(amp);
+double conveyorTemp = conveyor.temperature(celsius);
+double outtakeCurr = outake1.current(amp);
+double outtakeTemp = outake1.temperature(celsius);
+///Left Section 
+if (LF.installed())
+{
+MotorDisplay(1, leftFrontCurr, leftFrontTemp);
+Brain.Screen.printAt(300, YOFFSET + 1, "LF");
+}
+else
+Brain.Screen.printAt(5, YOFFSET + 1, "LF Problem");
+
+if (LB.installed())
+{
+MotorDisplay(31, leftBackCurr, leftBackTemp);
+Brain.Screen.printAt(300, YOFFSET + 31, "LB");
+}
+else
+Brain.Screen.printAt(5, YOFFSET + 31, "LB Problem");
+
+if (LM.installed())
+{
+MotorDisplay(61, leftMidCurr, leftMidTemp);
+Brain.Screen.printAt(300, YOFFSET + 61, "LM");
+}
+else
+Brain.Screen.printAt(5, YOFFSET + 61, "LM Problem");
+
+
+///Right Section
+if (RF.installed())
+{
+MotorDisplay(91, rightFrontCurr, rightFrontTemp);
+Brain.Screen.printAt(300, YOFFSET + 91, "RF");
+}
+else
+Brain.Screen.printAt(5, YOFFSET + 91, "RF Problem");
+
+if (RB.installed())
+{
+MotorDisplay(121, rightBackCurr, rightBackTemp);
+Brain.Screen.printAt(300, YOFFSET + 121, "RB");
+}
+else
+Brain.Screen.printAt(5, YOFFSET + 121, "RB Problem");
+
+if (RM.installed())
+{
+MotorDisplay(151, rightMidCurr, rightMidTemp);
+Brain.Screen.printAt(300, YOFFSET + 151, "RM");
+}
+else
+Brain.Screen.printAt(5, YOFFSET + 151, "RM Problem");
+
+//other motors section
+if (conveyor.installed())
+{
+MotorDisplay(181, conveyorCurr, conveyorTemp);
+Brain.Screen.printAt(300, YOFFSET +181, "conveyor");
+}
+else
+Brain.Screen.printAt(5, YOFFSET +181, "conveyor problem");
+
+if (outake1.installed())
+{
+MotorDisplay(211, outtakeCurr, outtakeTemp);
+Brain.Screen.printAt(300, YOFFSET +211, "outtake");
+}
+else
+Brain.Screen.printAt(5, YOFFSET +211, "outtake problem");
+}
+
+
 /*---------------------------------------------------------------------------*/
 
 void pre_auton(void) {
@@ -181,6 +303,7 @@ void autonomous(void) {
 void usercontrol(void) {
   // User control code here, inside the loop
   while (1) {
+  
     int Lspeed = Controller.Axis3.position(pct);
     int Rspeed = Controller.Axis2.position(pct);
     drive(Rspeed, Lspeed, 10);
@@ -214,6 +337,7 @@ void usercontrol(void) {
   if (Controller.ButtonDown.pressing()){
     ScrapaparerDescorerere.set(false);
   }
+      Display(); 
 
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
