@@ -366,10 +366,12 @@ conveyor.spin(reverse,75, pct);
 inchDrive(32);
 gyroTurn(190);
 ScrapaparerDescorerere.set(true);
-wait(1000, msec);
+wait(500, msec);
 inchDrive(12);
-wait(3000, msec);
+wait(1000, msec);
+conveyor.spin(forward,70,pct);
 inchDrive(-22);
+conveyor.spin(reverse,70,pct);
 outake1.spin(forward,100,pct);
 outake2.spin(forward,100,pct);
 
