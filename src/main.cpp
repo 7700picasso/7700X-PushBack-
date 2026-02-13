@@ -56,13 +56,13 @@ void stop(){
 
 float D = 3.25;
 float P = M_PI;
-float G = 36.0 / 60.0;
+float G = 36.0 / 48.0;
 
 double revToIn(double rev){
   return rev*D*P*G;
 }
 
-double kP = 3;
+double kP = 5.0;
 double kI = 0.1;
 double kD = 0;
 double accuracy = 0.25;
@@ -114,22 +114,90 @@ void testDrive(double inches){
 
 }
 
+void gyroTurn(float target) {
 
-void gyroTurn(float target){
-	float heading=0.0; //initialize a variable for heading
-	float accuracy=2.0; //how accurate to make the turn in degrees
-	float error=target-heading;
-	float kp=5.0;
-	float speed=kp*error;
-	gyr.setRotation(0.0, degrees);  //reset Gyro to zero degrees
-	while(fabs(error)>=accuracy){
-		speed=kp*error;
-		drive(speed, -speed, 10); //turn right at speed
-		heading=gyr.rotation();  //measure the heading of the robot
-		error=target-heading;  //calculate error
-	}
-	stop();  //stope the drive
+    // --- PID Constants (tune these) ---
+    float kP = 0.6;
+    float kI = 0.00;
+    float kD = 0;
+
+    // --- Settings ---
+    float accuracy = 1.5;          // degrees tolerance
+    float maxSpeed = 80;           // max turning speed (motor percent)
+    int timeout = 2000;            // timeout in milliseconds
+
+    // --- PID Variables ---
+    float error = 0;
+    float prevError = 0;
+    float integral = 0;
+    float derivative = 0;
+    float output = 0;
+
+    // --- Timer ---
+    timer t;
+    t.reset();
+
+    // Optional: reset gyro
+    // gyr.setRotation(0, degrees);
+
+    while (true) {
+
+        float heading = gyr.rotation(deg);
+        error = target - heading;
+
+        // Exit if within tolerance
+        if (fabs(error) < accuracy)
+            break;
+
+        // Exit if timeout exceeded
+        if (t.time(msec) > timeout)
+            break;
+
+        // --- PID Math ---
+        integral += error;
+
+        // Anti-windup (limit integral)
+        if (integral > 300) integral = 300;
+        if (integral < -300) integral = -300;
+
+        derivative = error - prevError;
+
+        output = (kP * error) + (kI * integral) + (kD * derivative);
+
+        // Limit speed to maxSpeed
+        if (output > maxSpeed) output = maxSpeed;
+        if (output < -maxSpeed) output = -maxSpeed;
+
+        // Turn robot
+        drive(-output, output, 10);
+
+        prevError = error;
+
+        wait(10, msec);
+    }
+
+    stop();
+
+    Brain.Screen.printAt(10, 20, "Final = %.2f", gyr.rotation(deg));
 }
+
+// void gyroTurn(float target){
+// 	float heading=0.0; //initialize a variable for heading
+// 	float accuracy=2.0; //how accurate to make the turn in degrees
+// 	float error=target-heading;
+// 	float kp=0.6;
+// 	float speed=kp*error;
+// 	//gyr.setRotation(0.0, degrees);  //reset Gyro to zero degrees
+// 	while(fabs(error)>=accuracy){
+// 		speed=kp*error;
+// 		drive(-speed, speed, 10); //turn right at speed
+// 		heading=gyr.rotation();  //measure the heading of the robot
+// 		error=target-heading;  //calculate error
+// 	}
+//   Brain.Screen.printAt(10, 20, "degrees = %0.2f" , gyr.rotation(deg)); 
+//   // printf("degrees=%f",gyr.rotation());
+// 	stop();  //stope the drive
+// }
 
 double YOFFSET = 20; //offset for the display
 //Writes a line for the diagnostics of a motor on the Brain
@@ -272,8 +340,7 @@ void pre_auton(void) {
 /*---------------------------------------------------------------------------*/
 
 void autonomous(void) {
-  testDrive(40);
-  testDrive(-40);
+ 
   // ..........................................................................
   /*conveyor.spin(forward, 100, pct);
   inchDrive(30);
@@ -287,6 +354,30 @@ void autonomous(void) {
   conveyor.spin(forward, 100, pct);
   inchDrive(1);
 */
+conveyor.spin(reverse,75, pct);
+inchDrive(10);
+gyroTurn(40);
+inchDrive(20);
+gyroTurn(135);
+conveyor.spin(forward,75, pct);
+wait(500, msec);
+conveyor.stop();
+conveyor.spin(reverse,75, pct);
+inchDrive(32);
+gyroTurn(190);
+ScrapaparerDescorerere.set(true);
+wait(1000, msec);
+inchDrive(12);
+wait(3000, msec);
+inchDrive(-22);
+outake1.spin(forward,100,pct);
+outake2.spin(forward,100,pct);
+
+
+
+
+
+
   // ..........................................................................
 }
 
