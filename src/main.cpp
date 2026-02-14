@@ -26,7 +26,8 @@ motor outake1 (PORT9, ratio18_1, 1);//red sprocket
 motor outake2 (PORT19, ratio18_1, true);//green sprocket
 motor conveyor (PORT14, ratio6_1, false);
 inertial gyr (PORT1);
-digital_out ScrapaparerDescorerere = digital_out(Brain.ThreeWirePort.A);
+digital_out Descorerere = digital_out(Brain.ThreeWirePort.B);
+digital_out Scrapaparer = digital_out(Brain.ThreeWirePort.A);
 controller Controller; 
 
 /*---------------------------------------------------------------------------*/
@@ -320,11 +321,64 @@ else
 Brain.Screen.printAt(5, YOFFSET +211, "outtake problem");
 }
 
+int AutonSelected = 2;
+int AutonMin = 0;
+int AutonMax = 4;
+
+void drawGUI() {
+	// Draws 2 buttons to be used for selecting auto
+	Brain.Screen.clearScreen();
+	Brain.Screen.printAt(1, 40, "Select Auton then Press Go");
+	Brain.Screen.printAt(1, 200, "Auton Selected =  %d   ", AutonSelected);
+	Brain.Screen.setFillColor(red);
+	Brain.Screen.drawRectangle(20, 50, 100, 100);
+	Brain.Screen.drawCircle(300, 75, 25);
+	Brain.Screen.printAt(25, 75, "Select");
+	Brain.Screen.setFillColor(green);
+	Brain.Screen.drawRectangle(170, 50, 100, 100);
+	Brain.Screen.printAt(175, 75, "GO");
+	Brain.Screen.setFillColor(black);
+}
+
+void selectAuton() {
+		bool selectingAuton = true;
+		
+		int x = Brain.Screen.xPosition(); // get the x position of last touch of the screen
+		int y = Brain.Screen.yPosition(); // get the y position of last touch of the screen
+		
+		// check to see if buttons were pressed
+		if (x >= 20 && x <= 120 && y >= 50 && y <= 150){ // select button pressed
+				AutonSelected++;
+				if (AutonSelected > AutonMax){
+						AutonSelected = AutonMin; // rollover
+				}
+				Brain.Screen.printAt(1, 200, "Auton Selected =  %d   ", AutonSelected);
+		}
+		
+		
+		if (x >= 170 && x <= 270 && y >= 50 && y <= 150) {
+				selectingAuton = false; // GO button pressed
+				Brain.Screen.printAt(1, 200, "Auton  =  %d   GO           ", AutonSelected);
+		}
+		
+		if (!selectingAuton) {
+				Brain.Screen.setFillColor(green);
+				Brain.Screen.drawCircle(300, 75, 25);
+		} else {
+				Brain.Screen.setFillColor(red);
+				Brain.Screen.drawCircle(300, 75, 25);
+		}
+		
+		wait(10, msec); // slow it down
+		Brain.Screen.setFillColor(black);
+}
 
 /*---------------------------------------------------------------------------*/
 
 void pre_auton(void) {
-
+		Brain.Screen.printAt(1, 40, "pre auton is running");
+		drawGUI();
+		Brain.Screen.pressed(selectAuton);
   // All activities that occur before the competition starts
   // Example: clearing encoders, setting servo positions, ...
 }
@@ -354,32 +408,90 @@ void autonomous(void) {
   conveyor.spin(forward, 100, pct);
   inchDrive(1);
 */
-conveyor.spin(reverse,75, pct);
+//red right, blue left
+switch (AutonSelected) {
+				case 0:
+					conveyor.spin(reverse,75, pct);
 inchDrive(10);
 gyroTurn(40);
 inchDrive(20);
 gyroTurn(135);
 conveyor.spin(forward,75, pct);
+wait(300, msec);
+conveyor.stop();
+conveyor.spin(reverse,75, pct);
+inchDrive(30);
+gyroTurn(190);
+Scrapaparer.set(true);
+wait(100, msec);
+inchDrive(10);
+drive(75, 75, 450);
+stop();
+wait(500, msec);
+conveyor.spin(forward,70,pct);
+inchDrive(-10);
+conveyor.spin(reverse,70,pct);
+gyroTurn(180);
+inchDrive(-15);
+conveyor.spin(reverse,70,pct);
+outake1.spin(reverse,100,pct);
+outake2.spin(forward,100,pct);
+					break;
+				
+				case 1:
+        //left red, blue right
+					conveyor.spin(reverse,75, pct);
+inchDrive(10);
+gyroTurn(-40);
+inchDrive(20);
+gyroTurn(-135); 
+conveyor.spin(forward,75, pct);
 wait(500, msec);
 conveyor.stop();
 conveyor.spin(reverse,75, pct);
-inchDrive(32);
-gyroTurn(190);
-ScrapaparerDescorerere.set(true);
+inchDrive(30);
+gyroTurn(-190);
+Scrapaparer.set(true);
 wait(500, msec);
-inchDrive(12);
-wait(1000, msec);
+inchDrive(10);
+drive(75, 75, 450);
+stop();
+wait(500, msec);
 conveyor.spin(forward,70,pct);
 inchDrive(-22);
 conveyor.spin(reverse,70,pct);
-outake1.spin(forward,100,pct);
+outake1.spin(reverse,100,pct);
 outake2.spin(forward,100,pct);
+					break;
+				
+				case 2:
+//descores loaders blocks in
+conveyor.spin(reverse,100,pct);
+inchDrive(34);
+Scrapaparer.set(true);
+wait(100,msec);
+gyroTurn(-90);
+inchDrive(8);
+wait(250,msec);
+inchDrive(-24);
+conveyor.spin(reverse,100,pct);
+outake1.spin(reverse,100,pct);
+outake2.spin(forward,100,pct);
+inchDrive(5);
+gyroTurn(-70);
+inchDrive(5);
+gyroTurn(-90);
+inchDrive(-20);
 
+// Descorerere.set(true);
+// inchDrive(10);
 
-
-
-
-
+					break;
+				
+				case 3:
+					//code 3
+					break;
+		}
   // ..........................................................................
 }
 
@@ -395,6 +507,7 @@ outake2.spin(forward,100,pct);
 
 void usercontrol(void) {
   // User control code here, inside the loop
+  Brain.Screen.clearScreen();
   while (1) {
   
     int Lspeed = Controller.Axis3.position(pct);
@@ -425,11 +538,19 @@ void usercontrol(void) {
   }
 
   if (Controller.ButtonUp.pressing()){
-    ScrapaparerDescorerere.set(true);
+    Descorerere.set(true);
   }
   if (Controller.ButtonDown.pressing()){
-    ScrapaparerDescorerere.set(false);
+    Descorerere.set(false);
   }
+
+  if (Controller.ButtonX.pressing()){
+    Scrapaparer.set(false);
+  }
+  if (Controller.ButtonB.pressing()){
+    Scrapaparer.set(true);
+  }
+
       Display(); 
 
     wait(20, msec); // Sleep the task for a short amount of time to
