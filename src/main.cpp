@@ -320,8 +320,9 @@ Brain.Screen.printAt(300, YOFFSET +211, "outtake");
 else
 Brain.Screen.printAt(5, YOFFSET +211, "outtake problem");
 }
+//AUTON SELECTOR
 
-int AutonSelected = 2;
+int AutonSelected = 1;
 int AutonMin = 0;
 int AutonMax = 4;
 
@@ -408,10 +409,88 @@ void autonomous(void) {
   conveyor.spin(forward, 100, pct);
   inchDrive(1);
 */
-//red right, blue left
+//red left, blue right
 switch (AutonSelected) {
 				case 0:
 					conveyor.spin(reverse,75, pct);
+inchDrive(10);
+gyroTurn(40);
+inchDrive(20);
+gyroTurn(135);
+conveyor.spin(forward,75, pct);
+wait(300, msec);
+conveyor.stop();
+conveyor.spin(reverse,75, pct);
+Scrapaparer.set(true);
+inchDrive(31);
+gyroTurn(190);
+wait(100, msec);
+ //inchDrive(10);
+drive(70, 70, 375);
+stop();                                    
+wait(700, msec);
+conveyor.spin(forward,70,pct);
+inchDrive(-20);
+Scrapaparer.set(false);
+conveyor.spin(forward,100,pct);
+outake1.spin(reverse,100,pct);
+outake2.spin(forward,100,pct);
+					break;
+				
+				case 1:
+        //left red, blue right: WORK IN PROGRESS
+						conveyor.spin(reverse,75, pct);
+inchDrive(10);
+gyroTurn(-40);
+inchDrive(20);
+gyroTurn(-135);
+conveyor.spin(forward,75, pct);
+wait(300, msec);
+conveyor.stop();
+conveyor.spin(reverse,75, pct);
+Scrapaparer.set(true);
+inchDrive(31);
+gyroTurn(-190);
+wait(100, msec);
+ //inchDrive(10);
+drive(70, 70, 375);
+stop();                                    
+wait(700, msec);
+conveyor.spin(forward,70,pct);
+inchDrive(-20);
+Scrapaparer.set(false);
+conveyor.spin(forward,100,pct);
+outake1.spin(reverse,100,pct);
+outake2.spin(forward,100,pct);
+// 					break;
+				
+				case 2:
+//JUST TAKES 4 BLOCKS FROM LOADER(red right, blue left)
+conveyor.spin(reverse,100,pct);
+inchDrive(34);
+Scrapaparer.set(true);
+wait(100,msec);
+gyroTurn(-90);
+inchDrive(8);
+wait(250,msec);
+inchDrive(-24);
+conveyor.spin(reverse,100,pct);
+outake1.spin(reverse,100,pct);
+outake2.spin(forward,100,pct);
+// inchDrive(5);
+// gyroTurn(-70);
+// inchDrive(5);
+// gyroTurn(-90);
+// inchDrive(-20);
+
+// Descorerere.set(true);
+// inchDrive(10);
+
+					break;
+				
+				case 3:
+					//auton skills
+conveyor.spin(reverse,75, pct);
 inchDrive(10);
 gyroTurn(40);
 inchDrive(20);
@@ -436,62 +515,15 @@ inchDrive(-15);
 conveyor.spin(reverse,70,pct);
 outake1.spin(reverse,100,pct);
 outake2.spin(forward,100,pct);
-					break;
-				
-				case 1:
-        //left red, blue right
-					conveyor.spin(reverse,75, pct);
-inchDrive(10);
-gyroTurn(-40);
-inchDrive(20);
-gyroTurn(-135); 
-conveyor.spin(forward,75, pct);
-wait(500, msec);
-conveyor.stop();
-conveyor.spin(reverse,75, pct);
-inchDrive(30);
-gyroTurn(-190);
-Scrapaparer.set(true);
-wait(500, msec);
-inchDrive(10);
-drive(75, 75, 450);
-stop();
-wait(500, msec);
-conveyor.spin(forward,70,pct);
-inchDrive(-22);
-conveyor.spin(reverse,70,pct);
-outake1.spin(reverse,100,pct);
-outake2.spin(forward,100,pct);
-					break;
-				
-				case 2:
-//descores loaders blocks in
-conveyor.spin(reverse,100,pct);
-inchDrive(34);
-Scrapaparer.set(true);
-wait(100,msec);
-gyroTurn(-90);
-inchDrive(8);
-wait(250,msec);
-inchDrive(-24);
-conveyor.spin(reverse,100,pct);
-outake1.spin(reverse,100,pct);
-outake2.spin(forward,100,pct);
-inchDrive(5);
-gyroTurn(-70);
-inchDrive(5);
-gyroTurn(-90);
-inchDrive(-20);
 
-// Descorerere.set(true);
-// inchDrive(10);
+break;
 
-					break;
-				
-				case 3:
-					//code 3
-					break;
-		}
+case 4:
+inchDrive(3);
+
+  
+break;
+}
   // ..........................................................................
 }
 
@@ -573,3 +605,10 @@ int main() {
     wait(100, msec);
   }
 }
+
+
+
+  
+//
+//
+//
